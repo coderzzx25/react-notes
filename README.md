@@ -34,6 +34,8 @@
   - [Redux 的核心理念 - State](#redux-的核心理念---state)
   - [Redux 的核心理念 - action](#redux-的核心理念---action)
   - [Redux 的核心理念 - reducer](#redux-的核心理念---reducer)
+  - [Redux 的三大原则](#redux-的三大原则)
+  - [redux 融入 react 代码](#redux融入react代码)
 
 ## 函数组件与类组件的区别
 
@@ -1066,13 +1068,22 @@ const initialState = {
  * 返回值:它的返回值会作为store之后存储的state
  */
 function reducer(state = initialState, action) {
-  if (action.type === "change_name") {
-    return { ...state, name: action.name };
-  } else if (action.type === "add_number") {
-    return { ...state, count: state.count + action.count };
+  // if写法
+  // if (action.type === "change_name") {
+  //   return { ...state, name: action.name };
+  // } else if (action.type === "add_number") {
+  //   return { ...state, count: state.count + action.count };
+  // }
+  // return state;
+  // switch写法
+  switch (action.type) {
+    case "change_name":
+      return { ...state, name: action.name };
+    case "add_number":
+      return { ...state, count: state.count + action.count };
+    default:
+      return state;
   }
-
-  return state;
 }
 
 const store = createStore(reducer);
@@ -1098,3 +1109,135 @@ const countAction = { type: "add_number", count: 10 };
 store.dispatch(countAction);
 console.log(store.getState()); // {name:'kobe',count:110}
 ```
+
+```javascript
+// 订阅store中的数据
+const sotre = require("./store");
+
+store.subscribe(() => {
+  console.log("订阅数据的变化:", store.getState());
+  // {name:'kobe',count: 100}
+  // {name:'kobe',count: 110}
+});
+
+store.dispatch({ type: "change_name", name: "kobe" });
+
+// 修改count
+store.dispatch({ type: "add_number", count: 10 });
+```
+
+```javascript
+// 动态生成action
+const sotre = require("./store");
+
+store.subscribe(() => {
+  console.log("订阅数据的变化:", store.getState());
+  // {name:'kobe',count: 100}
+  // {name:'kobe',count: 110}
+});
+
+// actionCreators:帮助我们创建action
+// 实际情况不应该写在此处，需要放在单独文件中，导入后进行使用
+const changeNameAction = (name) => ({
+  type: "change_name",
+  name,
+});
+
+store.dispatch(changeNameAction("kobe"));
+
+const AddNumberAction = (count) => ({
+  type: "add_number",
+  count,
+});
+store.dispatch(AddNumberAction(10));
+```
+
+```javascript
+// 最终写法
+// index.js
+const { createStore } = require("redux");
+const reducer = require("./reducer.js");
+const store = createStore(reducer);
+
+module.exports = store;
+
+// reducer.js
+const { CHANGE_NAME, ADD_NUMBER } = require("./constants.js");
+const initialState = {
+  name: "coderzzx",
+  count: 100,
+};
+
+function reducer(state = initialState, action) {
+  switch (action.type) {
+    case CHANGE_NAME:
+      return { ...state, name: action.name };
+    case ADD_NUMBER:
+      return { ...state, count: state.count + action.count };
+    default:
+      return state;
+  }
+}
+
+module.exports = reducer;
+
+// constants.js
+const CHANGE_NAME = "change_name";
+const ADD_NUMBER = "add_number";
+
+module.exports = {
+  CHANGE_NAME,
+  ADD_NUMBER,
+};
+
+// actionCreators.js
+const { CHANGE_NAME, ADD_NUMBER } = require("./constants.js");
+const changeNameAction = (name) => ({
+  type: CHANGE_NAME,
+  name,
+});
+const AddNumberAction = (count) => ({
+  type: ADD_NUMBER,
+  count,
+});
+
+module.exports = {
+  changeNameAction,
+  AddNumberAction,
+};
+
+// test.js 使用页面
+const store = require("./index.js");
+const { changeNameAction, AddNumberAction } = require("./actionCreators.js");
+
+store.dispatch(changeNameAction("hanmeimei"));
+store.dispatch(AddNumberAction(200));
+```
+
+## Redux 的三大原则
+
+**单一数据源**
+
+整个应用程序的 state 被存储在一颗 object tree 中,并且这个 object tree 只存储在一个 store 中;
+
+Redux 并没有强制让我们不能创建多个 Store,但是那样做并不利于数据的维护;
+
+单一的数据源可以让整个应用程序的 state 变得方便维护,追踪,修改;
+
+**State 是只读的**
+
+唯一修改 State 的方法一定是触发 action,不要试图在其他地方通过任何的方式来修改 State;
+
+这样就确保了 View 或网络请求都不能直接修改 state,它们只能通过 action 来描述自己想要如何修改 state;
+
+这样可以保证所有的修改都被集中化处理,并且按照严格的顺序来执行,所以不需要担心 race condition(竟态)的问题;
+
+**使用纯函数来执行修改**
+
+通过 reducer 将 state 和 action 联系在一起,并且返回一个新的 state;
+
+随着应用程序的复杂度增加,我们可以将 reducer 拆分成多个小的 reducers,分别操作不同的 state tree 的一部分;
+
+但是所有的 reducer 都应该是纯函数,不能产生任何副作用;
+
+## redux 融入 react 代码
