@@ -35,7 +35,7 @@
   - [Redux 的核心理念 - action](#redux-的核心理念---action)
   - [Redux 的核心理念 - reducer](#redux-的核心理念---reducer)
   - [Redux 的三大原则](#redux-的三大原则)
-  - [redux 融入 react 代码](#redux融入react代码)
+  - [redux 融入 react 代码](#redux-融入-react-代码)
 
 ## 函数组件与类组件的区别
 
@@ -1241,3 +1241,88 @@ Redux 并没有强制让我们不能创建多个 Store,但是那样做并不利�
 但是所有的 reducer 都应该是纯函数,不能产生任何副作用;
 
 ## redux 融入 react 代码
+
+redux代码如上:最终写法
+
+```javascript
+// Home.js
+import React, { PureComponent } from "react";
+import store from "./store";
+import {
+  incrementCountAction,
+  decrementCountAction,
+} from "./store/actionCreators";
+
+export class Home extends PureComponent {
+  constructor() {
+    super();
+    this.state = {
+      count: store.getState().count,
+    };
+  }
+  componentDidMount() {
+    store.subscribe(() => {
+      const state = store.getState();
+      this.setState({ count: state.count });
+    });
+  }
+  onClickIncrement = (num) => {
+    store.dispatch(incrementCountAction(num));
+  };
+  onClickDecrement = (num) => {
+    store.dispatch(decrementCountAction(num));
+  };
+  render() {
+    const { count } = this.state;
+    return (
+      <div>
+        <h1>Home Count {count}</h1>
+        <button onClick={() => this.onClickIncrement(1)}>+1</button>
+        <button onClick={() => this.onClickIncrement(5)}>+5</button>
+        <button onClick={() => this.onClickIncrement(10)}>+10</button>
+        <button onClick={() => this.onClickDecrement(1)}>-1</button>
+        <button onClick={() => this.onClickDecrement(5)}>-5</button>
+        <button onClick={() => this.onClickDecrement(10)}>-10</button>
+      </div>
+    );
+  }
+}
+
+export default Home;
+```
+
+```javascript
+// App.js
+import React, { PureComponent } from "react";
+import Home from "./Home";
+import Profile from "./Profile";
+import store from "./store";
+
+export class App extends PureComponent {
+  constructor() {
+    super();
+    this.state = {
+      count: store.getState().count,
+    };
+  }
+  componentDidMount() {
+    store.subscribe(() => {
+      const state = store.getState();
+      this.setState({ count: state.count });
+    });
+  }
+  render() {
+    const { count } = this.state;
+    return (
+      <div>
+        <h1>App Count {count}</h1>
+        <Home />
+        <Profile />
+      </div>
+    );
+  }
+}
+
+export default App;
+
+```
