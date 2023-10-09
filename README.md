@@ -1242,7 +1242,7 @@ Redux 并没有强制让我们不能创建多个 Store,但是那样做并不利�
 
 ## redux 融入 react 代码
 
-redux代码如上:最终写法
+redux 代码如上:最终写法
 
 ```javascript
 // Home.js
@@ -1324,5 +1324,70 @@ export class App extends PureComponent {
 }
 
 export default App;
+```
 
+使用 react-redux
+
+```javascript
+// index.js
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { Provider } from "react-redux";
+import store from "./store";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <App />
+    </Provider>
+  </React.StrictMode>
+);
+```
+
+```javascript
+// Profile.js
+import React, { PureComponent } from "react";
+import { connect } from "react-redux";
+import {
+  incrementCountAction,
+  decrementCountAction,
+} from "./store/actionCreators";
+
+export class Profile extends PureComponent {
+  onClickIncrement(num) {
+    this.props.increment(num);
+  }
+  onClickDecrement(num) {
+    this.props.decrement(num);
+  }
+  render() {
+    const { count } = this.props;
+    return (
+      <div>
+        <h1>Profile Count {count}</h1>
+        <button onClick={() => this.onClickIncrement(1)}>+1</button>
+        <button onClick={() => this.onClickIncrement(5)}>+5</button>
+        <button onClick={() => this.onClickIncrement(10)}>+10</button>
+        <button onClick={() => this.onClickDecrement(1)}>-1</button>
+        <button onClick={() => this.onClickDecrement(5)}>-5</button>
+        <button onClick={() => this.onClickDecrement(10)}>-10</button>
+      </div>
+    );
+  }
+}
+
+// mapStateToProps函数的返回值会被当作是Profile组件的props
+const mapStateToProps = (state) => ({
+  count: state.count,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  increment: (num) => dispatch(incrementCountAction(num)),
+  decrement: (num) => dispatch(decrementCountAction(num)),
+});
+
+// connect()返回值是一个高阶组件
+export default connect(mapStateToProps, mapDispatchToProps)(Profile);
 ```
