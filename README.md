@@ -36,6 +36,7 @@
   - [Redux 的核心理念 - reducer](#redux-的核心理念---reducer)
   - [Redux 的三大原则](#redux-的三大原则)
   - [redux 融入 react 代码](#redux-融入-react-代码)
+  - [组件中异步操作](#组件中异步操作)
 
 ## 函数组件与类组件的区别
 
@@ -1390,4 +1391,48 @@ const mapDispatchToProps = (dispatch) => ({
 
 // connect()返回值是一个高阶组件
 export default connect(mapStateToProps, mapDispatchToProps)(Profile);
+```
+
+## 组件中异步操作
+
+```javascript
+// About.js
+import React, { PureComponent } from "react";
+import axios from "axios";
+import { connect } from "react-redux";
+import { changeBannersAction } from "./store/actionCreators";
+
+export class About extends PureComponent {
+  componentDidMount() {
+    axios.get("http://123.207.32.32:8000/home/multidata").then((res) => {
+      const banners = res.data.data.banner.list;
+      this.props.changeBanners(banners);
+    });
+  }
+  render() {
+    const { banners } = this.props;
+    return (
+      <div>
+        <h1>About</h1>
+        <ul>
+          {banners.map((item) => {
+            return <li key={item.acm}>{item.title}</li>;
+          })}
+        </ul>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = (state) => ({
+  banners: state.banners,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  changeBanners: (banners) => {
+    dispatch(changeBannersAction(banners));
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(About);
 ```
