@@ -38,6 +38,8 @@
   - [redux 融入 react 代码](#redux-融入-react-代码)
   - [组件中异步操作](#组件中异步操作)
   - [redux 中异步操作](#redux-中异步操作)
+  - [理解中间件](#理解中间件)
+  - [React Developer Tools/Redux DevTools](#react-developer-toolsredux-devtools)
 
 ## 函数组件与类组件的区别
 
@@ -1502,4 +1504,50 @@ const fetchHomeMultiDataAction = () => {
   };
 };
 export { fetchHomeMultiDataAction };
+```
+
+## 理解中间件
+
+**redux 也引入了中间件(Middleware)的概念:**
+
+这个中间的目的是在 dispatch 的 action 和最终达到的 reducer 之间,扩展一些自己的代码;
+
+比如日志记录,调用异步接口,添加代码调试功能等等;
+
+**我们现在要做的事情就是发送异步的网络请求,所以我们可以添加对应的中间件:**
+
+官网推荐的网络请求的中间件是使用 redux-thunk;
+
+**redux-thunk 是如何做到让我们可以发送异步请求的呢?**
+
+我们知道,默认情况下的 dispatch(action),action 需要是一个 JavaScript 的对象;
+
+redux-thunk 可以让 dispatch(action 函数),action 可以是一个函数;
+
+该函数会被调用,并且会传给这个函数一个 dispatch 函数和 getState 函数;
+
+dispatch 函数用于我们之后再次派发 action;
+
+getState 函数考虑到我们之后的一些操作需要依赖原来的状态,用于让我们可以获取之前的一些状态;
+
+## React Developer Tools/Redux DevTools
+
+开启 Redux DevTools
+
+```javascript
+// store/index.js
+import { createStore, applyMiddleware, compose } from "redux";
+import reducer from "./reducer";
+import thunk from "redux-thunk";
+
+// 生产环境中需要关闭
+// __REDUX_DEVTOOLS_EXTENSION_COMPOSE__({trace:true}) 用于开启trace
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+// ts写法
+const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
+
+export default store;
 ```
