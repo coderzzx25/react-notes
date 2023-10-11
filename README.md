@@ -1573,3 +1573,13 @@ const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
 
 export default store;
 ```
+
+**combineReducers函数**
+
+combineReducers函数是如何实现的?
+
+事实上,它也是将我们传入的reducers合并到一个对象中,最终返回一个combination函数(相当于我们之前的reducer函数);
+
+在执行combination函数的过程中,它会通过判断前后返回的数据是否相同来决定返回之前的state还是新的state;
+
+新的state会触发订阅者发生对应的刷新,而旧的state可以有效的组织订阅者发生刷新;
