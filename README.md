@@ -40,6 +40,7 @@
   - [redux 中异步操作](#redux-中异步操作)
   - [理解中间件](#理解中间件)
   - [React Developer Tools/Redux DevTools](#react-developer-toolsredux-devtools)
+  - [redux 模块化](#redux-模块化)
 
 ## 函数组件与类组件的区别
 
@@ -1546,6 +1547,27 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 // ts写法
 const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
+
+export default store;
+```
+
+## redux 模块化
+
+```javascript
+import { createStore, applyMiddleware, compose, combineReducers } from "redux";
+import homeReducer from "./reducer";
+import aboutReducer from "./aboutReducer";
+import thunk from "redux-thunk";
+
+const reducer = combineReducers({
+  home: homeReducer,
+  about: aboutReducer,
+  // other reducers
+});
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
 
