@@ -37,6 +37,7 @@
   - [Redux 的三大原则](#redux-的三大原则)
   - [redux 融入 react 代码](#redux-融入-react-代码)
   - [组件中异步操作](#组件中异步操作)
+  - [redux 中异步操作](#redux-中异步操作)
 
 ## 函数组件与类组件的区别
 
@@ -1435,4 +1436,70 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(About);
+```
+
+## redux 中异步操作
+
+使用 redux-thunk
+
+```javascript
+// store/index.js
+import { createStore, applyMiddleware } from "redux";
+import reducer from "./reducer";
+import thunk from "redux-thunk";
+
+const store = createStore(reducer, applyMiddleware(thunk));
+
+export default store;
+```
+
+```javascript
+// About.js
+import React, { PureComponent } from "react";
+import { connect } from "react-redux";
+import { fetchHomeMultiDataAction } from "./store/actionCreators";
+
+export class About extends PureComponent {
+  componentDidMount() {
+    this.props.fetchHomeMultidata();
+  }
+  render() {
+    const { banners } = this.props;
+    return (
+      <div>
+        <h1>About</h1>
+        <ul>
+          {banners.map((item) => {
+            return <li key={item.acm}>{item.title}</li>;
+          })}
+        </ul>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = (state) => ({
+  banners: state.banners,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  fetchHomeMultidata() {
+    dispatch(fetchHomeMultiDataAction());
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(About);
+```
+
+```javascript
+// actionCreators.js
+const fetchHomeMultiDataAction = () => {
+  return (dispatch, getState) => {
+    axios.get("http://123.207.32.32:8000/home/multidata").then((res) => {
+      const banners = res.data.data.banner.list;
+      dispatch(changeBannersAction(banners));
+    });
+  };
+};
+export { fetchHomeMultiDataAction };
 ```
