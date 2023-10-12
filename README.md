@@ -41,6 +41,9 @@
   - [理解中间件](#理解中间件)
   - [React Developer Tools/Redux DevTools](#react-developer-toolsredux-devtools)
   - [redux 模块化](#redux-模块化)
+  - [Redux-Toolkit](#redux-toolkit)
+  - [store 的创建](#store-的创建)
+  - [Redux Toolkit 异步操作](#redux-toolkit-异步操作)
 
 ## 函数组件与类组件的区别
 
@@ -1574,12 +1577,136 @@ const store = createStore(reducer, composeEnhancers(applyMiddleware(thunk)));
 export default store;
 ```
 
-**combineReducers函数**
+**combineReducers 函数**
 
-combineReducers函数是如何实现的?
+combineReducers 函数是如何实现的?
 
-事实上,它也是将我们传入的reducers合并到一个对象中,最终返回一个combination函数(相当于我们之前的reducer函数);
+事实上,它也是将我们传入的 reducers 合并到一个对象中,最终返回一个 combination 函数(相当于我们之前的 reducer 函数);
 
-在执行combination函数的过程中,它会通过判断前后返回的数据是否相同来决定返回之前的state还是新的state;
+在执行 combination 函数的过程中,它会通过判断前后返回的数据是否相同来决定返回之前的 state 还是新的 state;
 
-新的state会触发订阅者发生对应的刷新,而旧的state可以有效的组织订阅者发生刷新;
+新的 state 会触发订阅者发生对应的刷新,而旧的 state 可以有效的组织订阅者发生刷新;
+
+## Redux-Toolkit
+
+**Redux Toolkit 是官方推荐的编写 Redux 逻辑的方法**
+
+在前面 Redux 应该已经发现,redux 的编写逻辑过于的繁琐和麻烦;
+
+并且代码通常拆分在多个文件中(虽然也可以放到一个文件管理,但是代码量过多,不利于管理);
+
+Redux Toolkit 包成为编写 Redux 逻辑的标准方式,从而解决上面提到的问题;
+
+在很多地方为了称呼方便,也将之称为 "RTK";
+
+**Redux Toolkit 的核心 API 主要是如下几个:**
+
+configureStore:包装 createStore 以提供简化的配置选项和良好的默认值。它可以自动组合你的 slicereducer,添加你提供的任何 Redux 中间件,redux-thunk 默认包含,并启用 Redux DevTools Extension。
+
+createSlice:接受 reducer 函数的对象,切片名称和初始状态值,并且自动生成切片 reducer,并且带有相应的 actions。
+
+createAsyncThunk:接受一个动作类型字符串和一个返回承诺的函数,并生成一个 pending/fulfilled/rejected 基于该承诺分派动作类型的 thunk。
+
+## store 的创建
+
+**configureStore 用于创建 store 对象,常见参数如下:**
+
+reducer,将 slice 中的 reducer 可以组成一个对象传入此处;
+
+middleware:可以使用参数,传入其他的中间件;
+
+devTools:是否配置 devTools 工具,默认为 true;
+
+```javascript
+// store/index.js
+import { configureStore } from "@reduxjs/toolkit";
+
+import counterReducer from "./modules/counter";
+
+const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+  },
+});
+
+export default store;
+```
+
+```javascript
+// store/modules/counter.js
+import { createSlice } from "@reduxjs/toolkit";
+
+const counterSlice = createSlice({
+  name: "counter",
+  initialState: {
+    counter: 99,
+  },
+  reducers: {
+    addCounterAction(state, { payload }) {
+      state.counter += payload;
+    },
+    subCounterAction(state, { payload }) {
+      state.counter -= payload;
+    },
+  },
+});
+
+export const { addCounterAction, subCounterAction } = counterSlice.actions;
+
+export default counterSlice.reducer;
+```
+
+```javascript
+// App.js
+import React, { PureComponent } from "react";
+import { connect } from "react-redux";
+import { addCounterAction, subCounterAction } from "./store/modules/counter";
+
+export class App extends PureComponent {
+  onClickAddCounter(num) {
+    this.props.addCounter(num);
+  }
+  onClickSubCounter(num) {
+    this.props.subCounter(num);
+  }
+  render() {
+    const { counters } = this.props;
+    return (
+      <div>
+        <h1>APP Counter: {counters.counter}</h1>
+        <button onClick={(e) => this.onClickAddCounter(1)}>-1</button>
+        <button onClick={(e) => this.onClickSubCounter(1)}>+1</button>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = (state) => ({
+  counters: state.counter,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  addCounter: (num) => {
+    dispatch(addCounterAction(num));
+  },
+  subCounter: (num) => {
+    dispatch(subCounterAction(num));
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
+```
+
+## Redux Toolkit 异步操作
+
+**redux-thunk 中间件让 dispatch 中可以进行异步操作。**
+
+**Redux Toolkit 默认已经给我们继承了 Thunk 相关功能:createAsyncThunk**
+
+**createAsyncThunk 创建出来的 action 被 dispatch 时,会存在三种状态:**
+
+pending:action 被发出,但是还没有最终的结果;
+
+fulfilled:获取最终的结果(有返回值的结果);
+
+erjected:执行过程中有错误或者抛出了异常;
