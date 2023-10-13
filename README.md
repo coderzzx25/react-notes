@@ -1673,7 +1673,7 @@ export class App extends PureComponent {
     const { counters } = this.props;
     return (
       <div>
-        <h1>APP Counter: {counters.counter}</h1>
+        <h1>APP Counter: {counters}</h1>
         <button onClick={(e) => this.onClickAddCounter(1)}>-1</button>
         <button onClick={(e) => this.onClickSubCounter(1)}>+1</button>
       </div>
@@ -1682,7 +1682,7 @@ export class App extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  counters: state.counter,
+  counters: state.counter.counter,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1710,3 +1710,65 @@ pending:action 被发出,但是还没有最终的结果;
 fulfilled:获取最终的结果(有返回值的结果);
 
 erjected:执行过程中有错误或者抛出了异常;
+
+```javascript
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
+
+export const fetchBanners = createAsyncThunk("home/fetchBanners", async () => {
+  const res = await axios.get("http://123.207.32.32:8000/home/multidata");
+  return res.data.data.banner.list;
+});
+
+const homeSlice = createSlice({
+  name: "home",
+  initialState: {
+    banners: [],
+  },
+  reducers: {},
+  extraReducers: {
+    [fetchBanners.fulfilled](state, { payload }) {
+      state.banners = payload;
+    },
+  },
+});
+
+export default homeSlice.reducer;
+```
+
+```javascript
+import React, { PureComponent } from "react";
+import { connect } from "react-redux";
+import { fetchBanners } from "./store/modules/home";
+
+export class App extends PureComponent {
+  componentDidMount() {
+    this.props.fetchBannersData();
+  }
+  render() {
+    const { banners } = this.props;
+    return (
+      <div>
+        <h1>APP</h1>
+        <ul>
+          {banners.map((item) => {
+            return <li key={item.acm}>{item.title}</li>;
+          })}
+        </ul>
+      </div>
+    );
+  }
+}
+
+const mapStateToProps = (state) => ({
+  banners: state.home.banners,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  fetchBannersData() {
+    dispatch(fetchBanners());
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
+```
