@@ -44,7 +44,12 @@
   - [Redux-Toolkit](#redux-toolkit)
   - [store 的创建](#store-的创建)
   - [Redux Toolkit 异步操作](#redux-toolkit-异步操作)
-  - [React-Router 的基本使用](#react-router的基本使用)
+  - [React Router 的基本使用](#react-router-的基本使用)
+  - [路由映射配置](#路由映射配置)
+  - [路由配置和跳转](#路由配置和跳转)
+  - [NavLink 的使用](#navlink-的使用)
+  - [Navigate 导航](#navigate-导航)
+  - [路由嵌套](#路由嵌套)
 
 ## 函数组件与类组件的区别
 
@@ -1774,4 +1779,115 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(mapStateToProps, mapDispatchToProps)(App);
 ```
 
-## React-Router 的基本使用
+## React Router 的基本使用
+
+**react-router 最主要的 API 是给我们提供的一些组件:**
+
+**BrowserRouter 或 HashRouter**
+
+Router 中包含了对路径改变的监听，并且会将相应的路径传递给子组件;
+
+BrowserRouter 使用 history 模式;
+
+HashRouter 使用 hash 模式
+
+```javascript
+<React.StrictMode>
+  <HashRouter>
+    <App />
+  </HashRouter>
+</React.StrictMode>
+```
+
+## 路由映射配置
+
+**Routes:包裹所有的 Route,在其中匹配一个路由**
+
+Router5.X 使用的是 Switch 组件
+
+**Route:Route 用于路径的匹配;**
+
+path 属性:用于设置匹配到的路径;
+
+element 属性:设置匹配到路径后,渲染的组件;
+
+Router5.X 使用的是 component 属性
+
+exact:精准匹配,只用精准匹配到完全一致的路径,才会渲染对应的组件;
+
+Router6.X 不再支持该属性
+
+```javascript
+<Routes>
+  <Route path="/home" element={<Home />} />
+  <Route path="/about" element={<About />} />
+</Routes>
+```
+
+## 路由配置和跳转
+
+**Link 和 NavLink:**
+
+通常路径的跳转是使用 Link 组件,最终会被渲染成 a 元素;
+
+NavLink 是在 Link 基础上增加了一些样式属性;
+
+to 属性:Link 中最重要的属性,用于设置跳转到的路径;
+
+```javascript
+<Link to="/home">Home</Link>
+<Link to="/about">About</Link>
+```
+
+## NavLink 的使用
+
+**需求:路径选中时,对应的 a 元素变为红色**
+
+**这时候我们要使用 NavLink 组件来代替 Link 组件:**
+
+style:传入函数,函数接受一个对象,包含 isActive 属性
+
+```javascript
+<NavLink to="/home" style={({ isActive }) => ({ color: isActive ? "pink" : "" })}>
+  Home
+</NavLink>
+<NavLink to="/about" style={({ isActive }) => ({ color: isActive ? "pink" : "" })}>
+  About
+</NavLink>
+```
+
+className:传入函数,函数接受一个对象,包含 isActive 属性
+
+```javascript
+<NavLink to="/home" className={({ isActive }) => (isActive ? "pink" : "")}>
+  Home
+</NavLink>
+<NavLink to="/about" className={({ isActive }) => (isActive ? "pink" : "")}>
+  About
+</NavLink>
+```
+
+**默认的 activeClassName:**
+
+事实上在默认匹配成功时,NavLink 就会添加上一个动态的 active class;
+
+所以我们可以直接编写样式
+
+**当然,如果你担心这个 class 在其他地方被使用了,出现样式层叠,也可以自定义 class**
+
+## Navigate 导航
+
+**Navigate 用于路由的重定向,当这个组件出现时,就会执行跳转到对应的 to 路径中**
+
+```javascript
+<Route path="/" element={<Navigate to="/home" />} />
+```
+
+**路由不匹配**
+
+```javascript
+// 写在路由最后
+<Route path="*" element={<NotFound />} />
+```
+
+## 路由嵌套
