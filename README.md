@@ -1891,3 +1891,14 @@ className:传入函数,函数接受一个对象,包含 isActive 属性
 ```
 
 ## 路由嵌套
+
+```javascript
+<Route path="/home" element={<Home />}>
+  <Route path="/" element={<Home />} />
+  <Route path="/:id" element={<Home />} />
+</Route>
+```
+
+Outlet 组件用于在父路由元素中作为子路由的占位元素
+
+router6.X 无法在类组件中进行手动跳转,对应的路由跳转 hook 只能在函数组件中使用
