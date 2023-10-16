@@ -50,6 +50,7 @@
   - [NavLink 的使用](#navlink-的使用)
   - [Navigate 导航](#navigate-导航)
   - [路由嵌套](#路由嵌套)
+  - [手动跳转](#手动跳转)
 
 ## 函数组件与类组件的区别
 
@@ -1901,4 +1902,70 @@ className:传入函数,函数接受一个对象,包含 isActive 属性
 
 Outlet 组件用于在父路由元素中作为子路由的占位元素
 
+## 手动跳转
+
 router6.X 无法在类组件中进行手动跳转,对应的路由跳转 hook 只能在函数组件中使用
+
+在类组件中实现手动跳转，需要实现一个高阶组件进行处理;
+
+```javascript
+import { useNavigate } from "react-router-dom";
+
+function WithRouter(WrapperComponent) {
+  return function (props) {
+    const navigate = useNavigate();
+    const router = {
+      navigate,
+    };
+    return <WrapperComponent {...props} router={router} />;
+  };
+}
+
+export default WithRouter;
+```
+
+```javascript
+import React, { PureComponent } from "react";
+import { Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import NotFound from "./pages/NotFound";
+import WithRouter from "./hoc/WithRouter";
+
+export class App extends PureComponent {
+  navigateTo(path) {
+    const { navigate } = this.props.router;
+    navigate(path);
+  }
+  render() {
+    return (
+      <div className="app">
+        <div className="app__header">
+          Header
+          <div className="app__nav">
+            <Link to="/home">Home</Link>
+            <Link to="/about">About</Link>
+            <button onClick={(e) => this.navigateTo("/home")}>home</button>
+            <button onClick={(e) => this.navigateTo("/about")}>about</button>
+          </div>
+          <hr />
+        </div>
+        <div className="app__content">
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" />} />
+            <Route path="/home" element={<Home />}></Route>
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+        <div className="app__footer">
+          <hr />
+          Footer
+        </div>
+      </div>
+    );
+  }
+}
+
+export default WithRouter(App);
+```
