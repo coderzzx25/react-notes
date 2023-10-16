@@ -50,7 +50,8 @@
   - [NavLink 的使用](#navlink-的使用)
   - [Navigate 导航](#navigate-导航)
   - [路由嵌套](#路由嵌套)
-  - [手动跳转](#手动跳转)
+  - [手动路由跳转](#手动路由跳转)
+  - [路由参数传递](#路由参数传递)
 
 ## 函数组件与类组件的区别
 
@@ -1902,7 +1903,7 @@ className:传入函数,函数接受一个对象,包含 isActive 属性
 
 Outlet 组件用于在父路由元素中作为子路由的占位元素
 
-## 手动跳转
+## 手动路由跳转
 
 router6.X 无法在类组件中进行手动跳转,对应的路由跳转 hook 只能在函数组件中使用
 
@@ -1968,4 +1969,96 @@ export class App extends PureComponent {
 }
 
 export default WithRouter(App);
+```
+
+## 路由参数传递
+
+动态路由传参
+
+```javascript
+<Route path="/me/:id" element={<Me />} />
+```
+
+```javascript
+// useParams无法在类组件中使用，继续增强高阶组件
+import { useNavigate, useParams } from "react-router-dom";
+
+function WithRouter(WrapperComponent) {
+  return function (props) {
+    const navigate = useNavigate();
+    const params = useParams();
+    const router = {
+      navigate,
+      params,
+    };
+    return <WrapperComponent {...props} router={router} />;
+  };
+}
+
+export default WithRouter;
+```
+
+```javascript
+export class Me extends PureComponent {
+  render() {
+    const { id } = this.props.router.params;
+    return (
+      <div>
+        <h1>Me Page - {id}</h1>
+      </div>
+    );
+  }
+}
+
+export default withRouter(Me);
+```
+
+查询字符串传参
+
+```javascript
+<Route path="/me?name=coderzzx" element={<Me />} />
+```
+
+```javascript
+// useLocation,useSearchParams无法在类组件中使用，继续增强高阶组件
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
+
+function withRouter(WrapperComponent) {
+  return function (props) {
+    const navigate = useNavigate();
+    const params = useParams();
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const query = Object.fromEntries(searchParams);
+    const router = {
+      navigate,
+      params,
+      location,
+      query,
+    };
+    return <WrapperComponent {...props} router={router} />;
+  };
+}
+
+export default WithRouter;
+```
+
+```javascript
+export class Me extends PureComponent {
+  render() {
+    const { name } = this.props.router.query;
+    return (
+      <div>
+        <h1>Me Page - {name}</h1>
+      </div>
+    );
+  }
+}
+
+export default withRouter(Me);
 ```
