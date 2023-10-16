@@ -52,6 +52,7 @@
   - [路由嵌套](#路由嵌套)
   - [手动路由跳转](#手动路由跳转)
   - [路由参数传递](#路由参数传递)
+  - [路由的配置文件](#路由的配置文件)
 
 ## 函数组件与类组件的区别
 
@@ -154,7 +155,7 @@ this.setState((state, props) => {
 });
 ```
 
-3.setState 在 React 的事件处理中是一个一步调用
+3.setState 在 React 的事件处理中是一个异步调用
 
 如果希望在数据更新之后(数据合并),获取对应的结果执行一些逻辑代码那么可以在 setState 中传入第二个参数:callback
 
@@ -2062,3 +2063,43 @@ export class Me extends PureComponent {
 
 export default withRouter(Me);
 ```
+
+## 路由的配置文件
+
+```javascript
+// router/index.js
+import React from "react";
+import { Navigate } from "react-router-dom";
+
+const Home = React.lazy(() => import("../pages/Home"));
+const About = React.lazy(() => import("../pages/About"));
+const Me = React.lazy(() => import("../pages/Me"));
+const NotFound = React.lazy(() => import("../pages/NotFound"));
+
+const routes = [
+  {
+    path: "/",
+    element: <Navigate to="/home" />,
+  },
+  {
+    path: "/home",
+    element: Home,
+  },
+  {
+    path: "/about",
+    element: About,
+  },
+  {
+    path: "/me",
+    element: Me,
+  },
+  {
+    path: "*",
+    element: NotFound,
+  },
+];
+
+export default routes;
+```
+
+在 App.js 中使用 useRoutes 进行渲染,由于使用的是懒加载，加载过程中可能会出现空白页面使用 Suspense 组件进行包裹
