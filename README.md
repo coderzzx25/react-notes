@@ -57,6 +57,7 @@
   - [为什么需要 Hook?](#为什么需要-hook)
   - [Class 组件存在的问题](#class-组件存在的问题)
   - [Hook 的出现](#hook-的出现)
+  - [useState 解析](#usestate-解析)
 
 ## 函数组件与类组件的区别
 
@@ -2183,3 +2184,36 @@ Hook 只能在函数组件中使用,不能在类组件,或者函数组件之外�
 100%向后兼容的:Hook 不包含任何破坏性改动;
 
 现在可用:Hook 已发布于 v6.8.0
+
+## useState 解析
+
+**useState 核心代码代表什么意思**
+
+```javascript
+import React, { useState } from "react";
+
+const [count, setCount] = useState(0);
+```
+
+useState 来自 React,需要从 react 中导入,它是一个 hook;
+
+参数:初始化值,如果不设置为 undefined;
+
+返回值:数组,包含两个元素;
+
+- 元素一:当前状态的值(第一调用为初始值);
+- 元素二:设置状态值的函数;
+
+调用 setCount 后,会完成两件事情:
+
+设置一个新值;
+
+组件重新渲染,并且根据新的值返回 DOM 结构;
+
+Hook 就是 JavaScript 函数,这个函数可以帮助你钩入(hook into) React State 以及生命周期函数等特性;
+
+**两个额外的规则:**
+
+只能在函数最外层调用 Hook,不要在循环,条件判断或者子函数中调用;
+
+只能在 React 的函数组件中调用 Hook,不要在其他 JavaScript 函数中调用;
