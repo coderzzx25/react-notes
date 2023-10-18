@@ -57,7 +57,10 @@
   - [为什么需要 Hook?](#为什么需要-hook)
   - [Class 组件存在的问题](#class-组件存在的问题)
   - [Hook 的出现](#hook-的出现)
-  - [useState 解析](#usestate-解析)
+  - [useState Hook](#usestate-hook)
+  - [useEffect Hook](#useeffect-hook)
+  - [需要清除 Effect](#需要清除-effect)
+  - [Effect 性能优化](#effect-性能优化)
 
 ## 函数组件与类组件的区别
 
@@ -2185,7 +2188,7 @@ Hook 只能在函数组件中使用,不能在类组件,或者函数组件之外�
 
 现在可用:Hook 已发布于 v6.8.0
 
-## useState 解析
+## useState Hook
 
 **useState 核心代码代表什么意思**
 
@@ -2217,3 +2220,114 @@ Hook 就是 JavaScript 函数,这个函数可以帮助你钩入(hook into) React
 只能在函数最外层调用 Hook,不要在循环,条件判断或者子函数中调用;
 
 只能在 React 的函数组件中调用 Hook,不要在其他 JavaScript 函数中调用;
+
+## useEffect Hook
+
+Effect Hook 可以完成一些类似于 class 中生命周期的功能;
+
+事实上,类似于网络请求,手动更新 DOM,一些事件的监听,都是 React 更新 DOM 的一些副作用(Side Effects);
+
+对于完成这些功能的 Hook 被称之为 Effect Hook;
+
+```javascript
+import React, { memo, useEffect, useState } from "react";
+
+const App = () => {
+  useEffect(() => {
+    document.title = count;
+  });
+  return (
+    <div>
+      <h1>App</h1>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+**useEffect 的解析:**
+
+通过 useEffect 的 Hook,可以告诉 React 需要在渲染后执行某些操作;
+
+useEffect 要求我们传入一个回调函数,在 React 执行完更新 DOM 操作之后,就会回调这个函数;
+
+默认情况下,无论是第一次渲染之后,还是每次更新之后,都会执行这个回调函数;
+
+## 需要清除 Effect
+
+在 class 组件的编写过程中,某些副作用的代码,我们需要在 componentWillUnmount 中进行清除
+
+比如事件总线或 Redux 中手动调用 subscribe;
+
+都需要在 componentWillUnmount 有对应对取消订阅;
+
+useEffect 传入的回调函数 A 本身可以有一个返回值,这个返回值是另外一个回调函数 B
+
+```typescript
+type EffectCallback = () => void | (() => void | undefined);
+```
+
+```javascript
+import React, { memo, useEffect, useState } from "react";
+
+const App = () => {
+  const [count, setCount] = useState(100);
+  useEffect(() => {
+    document.title = count;
+    return () => {};
+  });
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+**为什么要在 effect 中返回一个函数?**
+
+这是 effect 可选的清除机制,每个 effect 都可以返回一个清除函数;
+
+如此可以将添加和移除订阅的逻辑放在一起;
+
+它们都属于 effect 的一部分;
+
+**React 何时清除 effect?**
+
+React 会在组件更新和卸载的时候执行清楚操作;
+
+正如 effect 在每次渲染的时候都会执行;
+
+## Effect 性能优化
+
+**默认情况下,useEffec 的回调函数会在每次渲染时都会重新执行,会导致两个问题:**
+
+某些代码只希望执行一次即可,类似于 componentDidMount 和 componentWillUnmount 中完成的事情;(如网络请求,订阅和取消订阅)
+
+useEffect 实际上有两个参数
+
+- 参数一:执行的回调函数
+- 参数二:该 useEffect 在哪些 state 发生变化时,才重新执行;(受谁的影响)
+
+```javascript
+import React, { memo, useEffect, useState } from "react";
+
+const App = () => {
+  const [count, setCount] = useState(100);
+  useEffect(() => {
+    document.title = count;
+  }, [count]);
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
