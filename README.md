@@ -61,6 +61,7 @@
   - [useEffect Hook](#useeffect-hook)
   - [需要清除 Effect](#需要清除-effect)
   - [Effect 性能优化](#effect-性能优化)
+  - [useContext Hook](#usecontext-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2331,3 +2332,63 @@ const App = () => {
 
 export default memo(App);
 ```
+
+## useContext Hook
+
+组件共享的 Context 有两种方式:
+
+- 类组件可以通过类名.contextType = MyContext 方式,在类中获取 context;
+- 多个 Context 或者在函数式组件中通过 MyContext.Consumer 方式共享 context;
+
+但是多个 Context 共享时的方式会存在大量的嵌套
+
+Context Hook 允许我们通过 Hook 来直接获取某个 Context 的值;
+
+```javascript
+// context/index.js
+import { createContext } from "react";
+
+const UserContext = createContext();
+const ThemeContext = createContext();
+
+export { UserContext, ThemeContext };
+```
+
+```javascript
+// index.js
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { ThemeContext, UserContext } from "./context";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <ThemeContext.Provider value={{ color: "pink", size: "24px" }}>
+      <UserContext.Provider value={{ name: "coderzzx" }}>
+        <App />
+      </UserContext.Provider>
+    </ThemeContext.Provider>
+  </React.StrictMode>
+);
+```
+
+```javascript
+// App.js
+import React, { memo, useContext } from "react";
+import { ThemeContext, UserContext } from "./context";
+
+const App = () => {
+  const theme = useContext(ThemeContext);
+  const user = useContext(UserContext);
+  return (
+    <div>
+      <h1 style={{ color: theme.color, fontSize: theme.size }}>{user.name}</h1>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+注意事项:当组件上层最近的<MyContext.Provider>更新时,该 Hook 会重新渲染,并使用最新传递给 MyContext provider 的 context value 值
