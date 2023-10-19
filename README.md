@@ -62,6 +62,7 @@
   - [需要清除 Effect](#需要清除-effect)
   - [Effect 性能优化](#effect-性能优化)
   - [useContext Hook](#usecontext-hook)
+  - [useReducer Hook](#usereducer-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2392,3 +2393,43 @@ export default memo(App);
 ```
 
 注意事项:当组件上层最近的<MyContext.Provider>更新时,该 Hook 会重新渲染,并使用最新传递给 MyContext provider 的 context value 值
+
+## useReducer Hook
+
+useReducer 仅仅时 useState 的一种替代方案
+
+在某些场景下,如果 state 的处理逻辑比较复杂,我们可以通过 useReducer 来对其进行拆分;
+
+或者这次修改的 satae 需要依赖之前的 state 时,也可以使用;
+
+```javascript
+import React, { memo, useReducer } from "react";
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "increment":
+      return { count: state.count + 1 };
+    case "decrement":
+      return { count: state.count - 1 };
+    default:
+      return state;
+  }
+}
+
+const App = () => {
+  const [state, dispatch] = useReducer(reducer, { count: 100 });
+  return (
+    <div>
+      <h1>count: {state.count}</h1>
+      <button onClick={() => dispatch({ type: "increment" })}>+</button>
+      <button onClick={() => dispatch({ type: "decrement" })}>-</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+数据时不会共享的,它们只是使用了相同的 counterReducer 的函数而已;
+
+所以 useReducer 只是 useState 的一种替代品,并不能替代 Redux;
