@@ -63,6 +63,8 @@
   - [Effect 性能优化](#effect-性能优化)
   - [useContext Hook](#usecontext-hook)
   - [useReducer Hook](#usereducer-hook)
+  - [useCallBack Hook](#usecallback-hook)
+  - [useMemo Hook](#usememo-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2433,3 +2435,51 @@ export default memo(App);
 数据时不会共享的,它们只是使用了相同的 counterReducer 的函数而已;
 
 所以 useReducer 只是 useState 的一种替代品,并不能替代 Redux;
+
+## useCallBack Hook
+
+useCallback 实际的目的是为了进行性能的优化
+
+useCallback 会返回一个函数的 memoized(记忆的)值;
+
+在依赖不变的情况下,多次定义的时候,返回的值是相同的;
+
+通常使用 useCallback 的目的是不希望子组件进行多次渲染,并不是为了函数进行缓存;
+
+```javascript
+import React, { memo, useCallback, useState } from "react";
+
+// useCallback性能优化的点
+// 当需要将一个函数传递给子组件时,最好使用useCallback进行性能优化,将优化之后当函数,传递给子组件
+
+const Home = memo((props) => {
+  const { increment } = props;
+  console.log("Home被渲染");
+  return <button onClick={increment}>increment+1</button>;
+});
+
+const App = () => {
+  const [count, setCount] = useState(100);
+  const [name, setName] = useState("coderzzx");
+
+  const increment = useCallback(() => {
+    setCount(count + 1);
+  }, [count]);
+
+  return (
+    <div>
+      {count}
+      <button onClick={increment}>+1</button>
+      {/* 修改name时Home页面只会渲染一次 */}
+      <Home increment={increment} />
+
+      {name}
+      <button onClick={(e) => setName(Math.random())}>changeName</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+## useMemo Hook
