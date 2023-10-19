@@ -2483,3 +2483,43 @@ export default memo(App);
 ```
 
 ## useMemo Hook
+
+useMemo 实际的目的也是为了进行性能的优化
+
+useMemo 返回的也是一个 memoized(记忆的)值;
+
+在依赖不变的情况下,多次定义的时候,返回的值也是相同的;
+
+进行大量的计算操作,是否有必须要每次渲染时都重新计算:
+
+```javascript
+import React, { memo, useMemo, useState } from "react";
+
+// useCallback性能优化的点
+// 1.进行大量的计算操作
+// 2.对子组件传递相同内容的对象时
+
+function calcNumTotal(num) {
+  console.log("calcNumTotal渲染");
+  let total = 0;
+  for (let i = 1; i <= num; i++) {
+    total += i;
+  }
+  return total;
+}
+
+const App = () => {
+  const [count, setCount] = useState(0);
+  const result = useMemo(() => calcNumTotal(count), [count]);
+  return (
+    <div>
+      {/* 只有count被修改，calcNumTotal将会重新计算 */}
+      <h2>计算结果:{result}</h2>
+      <h2>count:{count}</h2>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
