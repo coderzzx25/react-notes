@@ -65,6 +65,7 @@
   - [useReducer Hook](#usereducer-hook)
   - [useCallBack Hook](#usecallback-hook)
   - [useMemo Hook](#usememo-hook)
+  - [useRef Hook](#useref-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2519,6 +2520,23 @@ const App = () => {
       <button onClick={() => setCount(count + 1)}>+1</button>
     </div>
   );
+};
+
+export default memo(App);
+```
+
+## useRef Hook
+
+useRef 返回一个 ref 对象,返回的 ref 对象在组件的整个生命周期内保持不变;
+
+引入 DOM 元素:
+
+```javascript
+import React, { memo, useRef } from "react";
+
+const App = () => {
+  const titleRef = useRef();
+  return <div ref={titleRef}>App</div>;
 };
 
 export default memo(App);
