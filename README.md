@@ -66,6 +66,7 @@
   - [useCallBack Hook](#usecallback-hook)
   - [useMemo Hook](#usememo-hook)
   - [useRef Hook](#useref-hook)
+  - [useImperativeHandle Hook](#useimperativehandle-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2541,3 +2542,61 @@ const App = () => {
 
 export default memo(App);
 ```
+
+## useImperativeHandle Hook
+
+ref 和 forwardRef 结合使用:
+
+- 通过 forwardRef 将 ref 转发到子组件;
+- 子组件拿到父组件中创建的 ref,绑定到自己的某一个元素中;
+
+forwardRef 的做法本身没有什么问题,但是我们是将子组件的 DOM 直接暴露给了父组件;
+
+直接暴露给父组件带来的问题是某些情况的不可控;
+
+父组件可以拿到 DOM 后进行任意操作;
+
+```javascript
+import React, { forwardRef, memo, useImperativeHandle, useRef } from "react";
+
+const Input = memo(
+  forwardRef((props, ref) => {
+    const inputRef = useRef();
+    // 暴露给父组件的方法
+    useImperativeHandle(ref, () => {
+      return {
+        focus: () => {
+          inputRef.current.focus();
+        },
+      };
+    });
+    return <input type="text" ref={inputRef} />;
+  })
+);
+
+const App = () => {
+  const inputRef = useRef();
+  const handleClick = () => {
+    // 获取input焦点
+    inputRef.current.focus();
+    // 如果子组件未将控制value的方法暴露给父组件，将无法获取以及设置value
+    inputRef.current.value = "";
+  };
+  return (
+    <div>
+      <Input ref={inputRef} />
+      <button onClick={handleClick}>获取DOM</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+但是,事实上上面的案例中,我们只是希望父组件可以操作 focus,其他并不希望它随意操作;
+
+通过 useImperativeHandle 可以选择暴露固定的操作
+
+通过 useImperativeHandle 的 Hook,将传入的 ref 和 useImperativeHandle 第二个参数返回的对象绑定到了一起;
+
+所以在父组件中,使用 inputRef.current 时,实际上使用的是返回的对象;
