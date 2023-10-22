@@ -67,6 +67,7 @@
   - [useMemo Hook](#usememo-hook)
   - [useRef Hook](#useref-hook)
   - [useImperativeHandle Hook](#useimperativehandle-hook)
+  - [useLayoutEffect Hook](#uselayouteffect-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2600,3 +2601,44 @@ export default memo(App);
 通过 useImperativeHandle 的 Hook,将传入的 ref 和 useImperativeHandle 第二个参数返回的对象绑定到了一起;
 
 所以在父组件中,使用 inputRef.current 时,实际上使用的是返回的对象;
+
+## useLayoutEffect Hook
+
+useLayoutEffect 看起来和 useEffect 非常的相似,事实上他们也只有一点区别而已
+
+useEffect 会在渲染的内容更新到 DOM 上之后执行,不会阻塞 DOM 的更新;
+
+useLayoutEffect 会在渲染的内容更新到 DOM 上之前执行,会阻塞 DOM 的更新;
+
+如果我们希望在某些操作之后,获取到最新的 DOM 信息,就可以使用 useLayoutEffect;
+
+```javascript
+import React, { memo, useEffect, useLayoutEffect, useState } from "react";
+
+const App = () => {
+  const [count, setCount] = useState(100);
+  useEffect(() => {
+    // 使用useEffect页面会渲染两次(不会阻塞页面渲染)
+    console.log("App useEffect");
+    if (count === 0) {
+      setCount(Math.random() + 99);
+    }
+  });
+  useLayoutEffect(() => {
+    // 使用useLayoutEffect页面只会渲染一次(会阻塞页面渲染,不推荐使用)
+    console.log("App useEffect");
+    if (count === 0) {
+      setCount(Math.random() + 99);
+    }
+  });
+  console.log("App render");
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(0)}>设置count为0</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
