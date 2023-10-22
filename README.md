@@ -68,6 +68,7 @@
   - [useRef Hook](#useref-hook)
   - [useImperativeHandle Hook](#useimperativehandle-hook)
   - [useLayoutEffect Hook](#uselayouteffect-hook)
+  - [Redux Hook](#redux-hook)
 
 ## 函数组件与类组件的区别
 
@@ -2636,6 +2637,83 @@ const App = () => {
     <div>
       <h1>Count: {count}</h1>
       <button onClick={() => setCount(0)}>设置count为0</button>
+    </div>
+  );
+};
+
+export default memo(App);
+```
+
+## Redux Hook
+
+在之前的 redux 开发中,为了让组件和 redux 结合起来,使用了 react-redux 提供的 connect 方法;
+
+但是这样方式必须使用高阶函数结合返回的高阶组件;
+
+并且必须编写 mapStateToProps 和 mapDispatchToProps 映射的函数;
+
+在 Redux7.1 开始,提供了 Hook 的方式,就不需要在编写 connect 以及对应的映射函数;
+
+useSelector 的作用是将 state 映射到组件中;
+
+- 参数一:将 state 映射到需要的数据中;
+- 参数二:可以进行比较来决定是否重新渲染;
+
+useSelector 默认会比较我们返回的两个对象是否相等;
+
+如何比较? const refEquality = (a, b) => a === b;
+
+也就是我们必须返回两个完全相等的对象才不引起重新渲染;
+
+useDispatch 非常简单,就是直接获取 dispatch 函数,之后在组件中直接使用即可;
+
+```javascript
+import React, { memo } from "react";
+import { useSelector, useDispatch, shallowEqual } from "react-redux";
+import { decrement, increment, changeMessage } from "./store/modules/count";
+
+const Home = memo(() => {
+  console.log("Home被渲染");
+  const { message } = useSelector(
+    (state) => ({
+      message: state.count.message,
+    }),
+    shallowEqual
+  );
+  const dispatch = useDispatch();
+  // 修改message，App组件会被重新渲染(未传入第二个参数shallowEqual)
+  const changemessage = () => {
+    dispatch(changeMessage(Math.random()));
+  };
+  return (
+    <div>
+      <h1>{message}</h1>
+      <button onClick={(e) => changemessage()}>changeMessage</button>
+    </div>
+  );
+});
+
+const App = () => {
+  console.log("App被渲染");
+  const { count } = useSelector(
+    (state) => ({ count: state.count.count }),
+    shallowEqual
+  );
+  const dispatch = useDispatch();
+  // 修改count，Home组件会被重新渲染(未传入第二个参数shallowEqual)
+  const changeCount = (num, isIncrement = true) => {
+    if (isIncrement) {
+      dispatch(increment(num));
+    } else {
+      dispatch(decrement(num));
+    }
+  };
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={(e) => changeCount(1)}>+1</button>
+      <button onClick={(e) => changeCount(1, false)}>-1</button>
+      <Home />
     </div>
   );
 };
